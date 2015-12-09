@@ -109,7 +109,7 @@ chmod +x /etc/periodic/15min/reissue
 
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
-/usr/sbin/crond -b -d 8
+/usr/sbin/crond -f -d 0 &
 
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"
