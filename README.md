@@ -4,6 +4,7 @@ Put browser-valid TLS termination in front of any HTTP service with one command.
 
 ```bash
 docker run -d --name tls-nginx \
+  --link backend:backend \
   -e EMAIL=me@email.com \
   -e DOMAIN=mydomain.horse \
   -e UPSTREAM=backend:4567 \
