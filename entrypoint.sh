@@ -58,8 +58,8 @@ http {
 
     location / {
       proxy_pass http://${UPSTREAM};
-      proxy_set_header Host $host;
-      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header Host \$host;
+      proxy_set_header X-Forwarded-For \$remote_addr;
       proxy_read_timeout 120s;
       proxy_send_timeout 120s;
     }
