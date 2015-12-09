@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -euo pipefail
+
 # Validate environment variables
 
 MISSING=""
@@ -56,12 +58,19 @@ http {
     ssl_stapling on;
     ssl_stapling_verify on;
 
+    root /etc/letsencrypt/webrootauth;
+
     location / {
       proxy_pass http://${UPSTREAM};
       proxy_set_header Host \$host;
       proxy_set_header X-Forwarded-For \$remote_addr;
-      proxy_read_timeout 120s;
-      proxy_send_timeout 120s;
+    }
+
+    location /.well-known/acme-challenge {
+      alias /etc/letsencrypt/webrootauth/.well-known/acme-challenge;
+      location ~ /.well-known/acme-challenge/(.*) {
+        add_header Content-Type application/jose+json;
+      }
     }
   }
 
@@ -80,8 +89,27 @@ letsencrypt certonly \
   --authenticator standalone \
   --email "${EMAIL}" --agree-tos
 
+# Template a cronjob to reissue the certificate with the webroot authenticator
+cat <<EOF >/etc/periodic/15min/reissue.sh
+#!/bin/sh
+
+set -euo pipefail
+
+# Certificate reissue
+letsencrypt certonly \
+  --domain "${DOMAIN}" \
+  --authenticator webroot \
+  --webroot-path /etc/letsencrypt/webrootauth/ \
+  --email "${EMAIL}" --agree-tos
+
+# Reload nginx configuration to pick up the reissued certificates
+/usr/sbin/nginx -s reload
+EOF
+chmod +x /etc/periodic/15min/reissue.sh
+
 # Kick off cron to reissue certificates as required
-/usr/sbin/crond &
+# Background the process and log to stderr
+/usr/sbin/crond -b -d 8
 
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"

@@ -13,7 +13,9 @@ RUN pip install -U letsencrypt
 RUN ln -sf /dev/stdout /var/log/nginx/access.log
 RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
-ADD reissue.sh /etc/periodic/15min/reissue.sh
+# used for webroot reauth
+RUN mkdir -p /etc/letsencrypt/webrootauth
+
 ADD entrypoint.sh /entrypoint.sh
 
 EXPOSE 80 443
