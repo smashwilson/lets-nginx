@@ -90,7 +90,7 @@ letsencrypt certonly \
   --email "${EMAIL}" --agree-tos
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
-cat <<EOF >/etc/periodic/15min/reissue.sh
+cat <<EOF >/etc/periodic/15min/reissue
 #!/bin/sh
 
 set -euo pipefail
@@ -105,7 +105,7 @@ letsencrypt certonly \
 # Reload nginx configuration to pick up the reissued certificates
 /usr/sbin/nginx -s reload
 EOF
-chmod +x /etc/periodic/15min/reissue.sh
+chmod +x /etc/periodic/15min/reissue
 
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
