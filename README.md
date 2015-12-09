@@ -2,7 +2,7 @@
 
 *[dockerhub build](https://hub.docker.com/r/smashwilson/lets-nginx/)*
 
-Put browser-valid TLS termination in front of any HTTP service with one command.
+Put browser-valid TLS termination in front of any Dockerized HTTP service with one command.
 
 ```bash
 docker run -d --name tls-nginx \
