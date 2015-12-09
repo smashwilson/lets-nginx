@@ -26,6 +26,7 @@ Before you begin, you'll need:
 
 Launch your backend container and note its name, then launch `smashwilson/tls-nginx` with the following parameters:
 
+ * `--link backend:backend` to link your backend service's container to this one. *(This may be unnecessary depending on Docker's [networking configuration](https://docs.docker.com/engine/userguide/networking/dockernetworks/).)*
  * `-e EMAIL=` your email address, used to register with letsencrypt.
  * `-e DOMAIN=` the domain name.
  * `-e UPSTREAM=` the name of your backend container and the port on which the service is listening.
