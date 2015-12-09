@@ -64,6 +64,13 @@ http {
       proxy_send_timeout 120s;
     }
   }
+
+  # Redirect from port 80 to port 443
+  server {
+    listen 80;
+    server_name "";
+    return 301 https://\$server_name\$request_uri;
+  }
 }
 EOF
 
