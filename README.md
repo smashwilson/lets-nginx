@@ -1,5 +1,7 @@
 # Let's Nginx
 
+*[dockerhub build](https://hub.docker.com/r/smashwilson/lets-nginx/)*
+
 Put browser-valid TLS termination in front of any HTTP service with one command.
 
 ```bash
@@ -9,7 +11,7 @@ docker run -d --name tls-nginx \
   -e DOMAIN=mydomain.horse \
   -e UPSTREAM=backend:4567 \
   -p 80:80 -p 443:443 \
-  smashwilson/tls-nginx
+  smashwilson/lets-nginx
 ```
 
 Issues certificates from [letsencrypt](https://letsencrypt.org/), installs them in [nginx](https://www.nginx.com/), and schedules a cron job to reissue them monthly.
