@@ -16,6 +16,11 @@ if [ "${MISSING}" != "" ]; then
   exit 1
 fi
 
+# Default other parameters
+
+SERVER=""
+[ -n "${STAGING:-}" ] && SERVER="--server https://acme-staging.api.letsencrypt.org/directory"
+
 # Generate strong DH parameters for nginx, if they don't already exist.
 [ -f /etc/ssl/dhparams.pem ] || openssl dhparam -out /etc/ssl/dhparams.pem 2048
 
@@ -41,7 +46,7 @@ http {
 
   server {
     listen 443 ssl;
-    server_name "";
+    server_name "${DOMAIN}";
 
     ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
@@ -77,7 +82,7 @@ http {
   # Redirect from port 80 to port 443
   server {
     listen 80;
-    server_name "";
+    server_name "${DOMAIN}";
     return 301 https://\$server_name\$request_uri;
   }
 }
@@ -87,6 +92,7 @@ EOF
 letsencrypt certonly \
   --domain ${DOMAIN} \
   --authenticator standalone \
+  ${SERVER} \
   --email "${EMAIL}" --agree-tos
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
@@ -96,10 +102,10 @@ cat <<EOF >/etc/periodic/15min/reissue
 set -euo pipefail
 
 # Certificate reissue
-letsencrypt certonly \
+letsencrypt certonly --renew-by-default \
   --domain "${DOMAIN}" \
   --authenticator webroot \
-  --webroot-path /etc/letsencrypt/webrootauth/ \
+  --webroot-path /etc/letsencrypt/webrootauth/ ${SERVER} \
   --email "${EMAIL}" --agree-tos
 
 # Reload nginx configuration to pick up the reissued certificates
@@ -109,7 +115,7 @@ chmod +x /etc/periodic/15min/reissue
 
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
-/usr/sbin/crond -f -d 0 &
+/usr/sbin/crond -f -d 8 &
 
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"
