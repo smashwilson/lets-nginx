@@ -24,9 +24,16 @@ SERVER=""
 # Generate strong DH parameters for nginx, if they don't already exist.
 [ -f /etc/ssl/dhparams.pem ] || openssl dhparam -out /etc/ssl/dhparams.pem 2048
 
+#create temp file storage
+mkdir -p /var/cache/nginx
+chown nginx:nginx /var/cache/nginx
+
+mkdir -p /var/tmp/nginx
+chown nginx:nginx /var/tmp/nginx
+
 # Template an nginx.conf
 cat <<EOF >/etc/nginx/nginx.conf
-user nobody;
+user nginx;
 worker_processes 2;
 
 events {
@@ -36,6 +43,9 @@ events {
 http {
   include mime.types;
   default_type application/octet-stream;
+  
+  proxy_cache_path /var/cache/nginx keys_zone=anonymous:10m;
+  proxy_temp_path /var/tmp/nginx;
 
   sendfile on;
   tcp_nopush on;
@@ -69,6 +79,7 @@ http {
       proxy_pass http://${UPSTREAM};
       proxy_set_header Host \$host;
       proxy_set_header X-Forwarded-For \$remote_addr;
+      proxy_cache   anonymous;
     }
 
     location /.well-known/acme-challenge {
