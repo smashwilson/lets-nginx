@@ -36,12 +36,12 @@ Launch your backend container and note its name, then launch `smashwilson/lets-n
  * `-e DOMAIN=` the domain name.
  * `-e UPSTREAM=` the name of your backend container and the port on which the service is listening.
  * `-p 80:80` and `-p 443:443` so that the letsencrypt client and nginx can bind to those ports on your public interface.
- * `-e STAGING=1` uses the Let's Encrypt *staging server* instead of the production one. 
-            I highly recommend using this option to double check your infrastructure before you launch a real service. 
-            Let's Encrypt rate-limits the production server to issuing 
-            [five certificates per domain per seven days](https://community.letsencrypt.org/t/public-beta-rate-limits/4772/3), 
+ * `-e STAGING=1` uses the Let's Encrypt *staging server* instead of the production one.
+            I highly recommend using this option to double check your infrastructure before you launch a real service.
+            Let's Encrypt rate-limits the production server to issuing
+            [five certificates per domain per seven days](https://community.letsencrypt.org/t/public-beta-rate-limits/4772/3),
             which (as I discovered the hard way) you can quickly exhaust by debugging unrelated problems!
-            
+
 ## Caching the Certificates and/or DH Parameters
 
 Since `--link`s don't survive the re-creation of the target container, you'll need to coordinate re-creating
@@ -70,4 +70,23 @@ docker run --detach \
   -v letsencrypt-backups:/var/lib/letsencrypt \
   -v dhparam-cache:/cache \
   smashwilson/lets-nginx
+```
+
+## Adjusting Nginx configuration
+
+The entry point of this image processes the files in `/templates` and
+places the result of each file in `/etc/nginx` with the same file name.
+The following variable substitutions are made while processing those files:
+
+* `${DOMAIN}`
+* `${UPSTREAM}`
+
+For example, to adjust `nginx.conf`, create that file in your new image directory
+with the [baseline content](templates/nginx.conf) and desired modifications.
+Within your `Dockerfile` *ADD* this file  and it will get used by the image entry point.
+
+```docker
+FROM smashwilson/lets-nginx
+
+ADD nginx.conf /templates/nginx.conf
 ```
