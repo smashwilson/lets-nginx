@@ -17,6 +17,7 @@ RUN ln -sf /dev/stderr /var/log/nginx/error.log
 RUN mkdir -p /etc/letsencrypt/webrootauth
 
 ADD entrypoint.sh /entrypoint.sh
+ADD templates /templates
 
 EXPOSE 80 443
 
