@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -10,10 +10,26 @@ MISSING=""
 [ -z "${UPSTREAM}" ] && MISSING="${MISSING} UPSTREAM"
 [ -z "${EMAIL}" ] && MISSING="${MISSING} EMAIL"
 
+
 if [ "${MISSING}" != "" ]; then
   echo "Missing required environment variables:" >&2
   echo " ${MISSING}" >&2
-  exit 1
+  exit 1 
+  fi
+
+#Processing DOMAIN into an array
+DOMAINSARRAY=($(echo "${DOMAIN}" | awk -F ";" '{for(i=1;i<=NF;i++) print $i;}'))
+echo "Provided domains"
+printf "%s\n" "${DOMAINSARRAY[@]}"
+  
+#Processing UPSTREAM into an array
+UPSTREAMARRAY=($(echo "${UPSTREAM}" | awk -F ";" '{for(i=1;i<=NF;i++) print $i;}'))
+echo "Services to reverse-proxy"
+printf "%s\n" "${UPSTREAMARRAY[@]}"
+
+#The two arrays should have the same lenght
+if [ "${#DOMAINSARRAY[@]}" != "${#UPSTREAMARRAY[@]}" ]; then
+  echo "The number of domains must match the number of upstream services"
 fi
 
 # Default other parameters
@@ -41,43 +57,55 @@ chown nginx:nginx /var/cache/nginx
 mkdir -p /var/tmp/nginx
 chown nginx:nginx /var/tmp/nginx
 
+#create vhost directory
+mkdir -p /etc/nginx/vhosts/
+
+# Copy nginx main conf file.
+cp templates/nginx.conf /etc/nginx/nginx.conf
+
 # Process templates
-for t in /templates/*
+upstreamId=0
+for t in "${DOMAINSARRAY[@]}"
 do
-  dest="/etc/nginx/$(basename $t)"
-  echo "Rendering template of $dest"
-  sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
-      -e "s/\${UPSTREAM}/${UPSTREAM}/" \
-      $t > $dest
+  dest="/etc/nginx/vhosts/$(basename "${t}").conf"
+  echo "Rendering template of $t in $dest"
+  sed -e "s/\${DOMAIN}/${t}/g" \
+      -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
+      /templates/vhost.sample.conf > "$dest"
+  upstreamId=$((upstreamId+1))
 done
 
+
+for d in "${DOMAINSARRAY[@]}"
+do
+
 # Initial certificate request, but skip if cached
-if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
-  letsencrypt certonly \
-    --domain ${DOMAIN} \
-    --authenticator standalone \
-    ${SERVER} \
-    --email "${EMAIL}" --agree-tos
-fi
+  if [ ! -f /etc/letsencrypt/live/"${d}"/fullchain.pem ]; then
+    letsencrypt certonly \
+      --domain "${d}" \
+      --standalone \
+      --email "${EMAIL}" --agree-tos
+  fi
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
-cat <<EOF >/etc/periodic/monthly/reissue
-#!/bin/sh
+  cat <<EOF >/etc/periodic/monthly/reissue-"${d}"
+  #!/bin/sh
 
-set -euo pipefail
+  set -euo pipefail
 
-# Certificate reissue
-letsencrypt certonly --renew-by-default \
-  --domain "${DOMAIN}" \
-  --authenticator webroot \
-  --webroot-path /etc/letsencrypt/webrootauth/ ${SERVER} \
-  --email "${EMAIL}" --agree-tos
+  # Certificate reissue
+  letsencrypt certonly --force-renewal \
+    --webroot \
+    -w /etc/letsencrypt/webrootauth/ \
+    --domain "${d}" \
+    --email "${EMAIL}" --agree-tos
 
-# Reload nginx configuration to pick up the reissued certificates
-/usr/sbin/nginx -s reload
+  # Reload nginx configuration to pick up the reissued certificates
+  /usr/sbin/nginx -s reload
 EOF
-chmod +x /etc/periodic/monthly/reissue
 
+chmod +x /etc/periodic/monthly/reissue-"${d}"
+done
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
 /usr/sbin/crond -f -d 8 &
