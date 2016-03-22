@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -10,10 +10,26 @@ MISSING=""
 [ -z "${UPSTREAM}" ] && MISSING="${MISSING} UPSTREAM"
 [ -z "${EMAIL}" ] && MISSING="${MISSING} EMAIL"
 
+
 if [ "${MISSING}" != "" ]; then
   echo "Missing required environment variables:" >&2
   echo " ${MISSING}" >&2
-  exit 1
+  exit 1 
+  fi
+
+#Processing DOMAIN into an array
+DOMAINSARRAY=($(echo "${DOMAIN}" | awk -F ";" '{for(i=1;i<=NF;i++) print $i;}'))
+echo "Provided domains"
+printf "%s\n" "${DOMAINSARRAY[@]}"
+  
+#Processing UPSTREAM into an array
+UPSTREAMARRAY=($(echo "${UPSTREAM}" | awk -F ";" '{for(i=1;i<=NF;i++) print $i;}'))
+echo "Services to reverse-proxy"
+printf "%s\n" "${UPSTREAMARRAY[@]}"
+
+#The two arrays should have the same lenght
+if [ "${#DOMAINSARRAY[@]}" != "${#UPSTREAMARRAY[@]}" ]; then
+  echo "The number of domains must match the number of upstream services"
 fi
 
 # Default other parameters
@@ -41,40 +57,58 @@ chown nginx:nginx /var/cache/nginx
 mkdir -p /var/tmp/nginx
 chown nginx:nginx /var/tmp/nginx
 
-# Process templates
-for t in /templates/*
-do
-  dest="/etc/nginx/$(basename $t)"
-  echo "Rendering template of $dest"
+#create vhost directory
+mkdir -p /etc/nginx/vhosts/
+
+# Process the nginx.conf with raw values of $DOMAIN and $UPSTREAM to ensure backward-compatibility
+  dest="/etc/nginx/nginx.conf"
+  echo "Rendering template of nginx.conf"
   sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
-      -e "s/\${UPSTREAM}/${UPSTREAM}/" \
-      $t > $dest
+      -e "s/\${UPSTREAM}/${DOMAIN}/" \
+      /templates/nginx.conf > "$dest"
+
+
+# Process templates
+upstreamId=0
+letscmd=""
+for t in "${DOMAINSARRAY[@]}"
+do
+  dest="/etc/nginx/vhosts/$(basename "${t}").conf"
+  echo "Rendering template of $t in $dest"
+  sed -e "s/\${DOMAIN}/${t}/g" \
+      -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
+      /templates/vhost.sample.conf > "$dest"
+  upstreamId=$((upstreamId+1))
+
+  #prepare the letsencrypt command arguments
+  letscmd="$letscmd --domain $t "
 done
 
 # Initial certificate request, but skip if cached
-if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
-  letsencrypt certonly \
-    --domain ${DOMAIN} \
-    --standalone \
-    --email "${EMAIL}" --agree-tos
-fi
+  if [ ! -f /etc/letsencrypt/live/"${d}"/fullchain.pem ]; then
+    letsencrypt certonly \
+      ${letscmd} \
+      --standalone \
+      --email "${EMAIL}" --agree-tos
+  fi
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
-cat <<EOF >/etc/periodic/monthly/reissue
-#!/bin/sh
+  cat <<EOF >/etc/periodic/monthly/reissue-"${d}"
+  #!/bin/sh
 
-set -euo pipefail
+  set -euo pipefail
 
-# Certificate reissue
-letsencrypt certonly --force-renewal \
-  --webroot \
-  -w /etc/letsencrypt/webrootauth/ \
-  --domain "${DOMAIN}" \
-  --email "${EMAIL}" --agree-tos
+  # Certificate reissue
+  letsencrypt certonly --force-renewal \
+    --webroot \
+    -w /etc/letsencrypt/webrootauth/ \
+    ${letscmd} \
+    --email "${EMAIL}" --agree-tos
 
-# Reload nginx configuration to pick up the reissued certificates
-/usr/sbin/nginx -s reload
+  # Reload nginx configuration to pick up the reissued certificates
+  /usr/sbin/nginx -s reload
 EOF
+
 chmod +x /etc/periodic/monthly/reissue
 
 # Kick off cron to reissue certificates as required

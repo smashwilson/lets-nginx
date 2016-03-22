@@ -42,6 +42,17 @@ Launch your backend container and note its name, then launch `smashwilson/lets-n
             [five certificates per domain per seven days](https://community.letsencrypt.org/t/public-beta-rate-limits/4772/3),
             which (as I discovered the hard way) you can quickly exhaust by debugging unrelated problems!
 
+### Using more than one backend service
+
+You can set up multiple proxy destinations, matching the host name. This is usefull if you have more than one container you want to access with https
+
+To do so, simply set the DOMAIN and UPSTREAM env variables accordingly :
+```bash
+-e DOMAIN="domain1.com;sub.domain1.com;another.domain.net"
+-e UPSTREAM="backend:8080;172.17.0.5:60;container:5000"
+``` 
+The values are separated by `;`.
+
 ## Caching the Certificates and/or DH Parameters
 
 Since `--link`s don't survive the re-creation of the target container, you'll need to coordinate re-creating
@@ -74,8 +85,9 @@ docker run --detach \
 
 ## Adjusting Nginx configuration
 
-The entry point of this image processes the files in `/templates` and
-places the result of each file in `/etc/nginx` with the same file name.
+The entry point of this image processes the  `nginx.conf` file in `/templates` and places the result in `/etc/nginx` with the same file name.
+Also, one ore several files are created in `/etc/nginx/vhosts` with the the appropriate domain name, e.g `/etc/nginx/vhosts/domain1.com.conf`.
+
 The following variable substitutions are made while processing those files:
 
 * `${DOMAIN}`

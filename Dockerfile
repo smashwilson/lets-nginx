@@ -1,7 +1,9 @@
 FROM alpine:latest
 MAINTAINER Ash Wilson <smashwilson@gmail.com>
 
-RUN apk add --update nginx \
+#We need to install bash to easily handle arrays
+# in the entrypoint.sh script
+RUN apk add --update nginx bash \
   python python-dev py-pip \
   gcc musl-dev linux-headers \
   augeas-dev openssl-dev libffi-dev ca-certificates dialog \
