@@ -75,14 +75,16 @@ do
   upstreamId=$((upstreamId+1))
 done
 
-
+letscmd=""
 for d in "${DOMAINSARRAY[@]}"
 do
+  letscmd="$letscmd --domain $d"
+done
 
 # Initial certificate request, but skip if cached
   if [ ! -f /etc/letsencrypt/live/"${d}"/fullchain.pem ]; then
     letsencrypt certonly \
-      --domain "${d}" \
+      ${letscmd} \
       --standalone \
       --email "${EMAIL}" --agree-tos
   fi
@@ -97,15 +99,15 @@ do
   letsencrypt certonly --force-renewal \
     --webroot \
     -w /etc/letsencrypt/webrootauth/ \
-    --domain "${d}" \
+    ${letscmd} \
     --email "${EMAIL}" --agree-tos
 
   # Reload nginx configuration to pick up the reissued certificates
   /usr/sbin/nginx -s reload
 EOF
 
-chmod +x /etc/periodic/monthly/reissue-"${d}"
-done
+chmod +x /etc/periodic/monthly/reissue
+
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
 /usr/sbin/crond -f -d 8 &
