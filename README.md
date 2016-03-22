@@ -44,19 +44,19 @@ Launch your backend container and note its name, then launch `smashwilson/lets-n
 
 ### Using more than one backend service
 
-You can set up multiple proxy destinations, matching the host name. This is usefull if you have more than one container you want to access with https
+You can distribute traffic to multiple upstream proxy destinations, chosen by the Host header. This is useful if you have more than one container you want to access with https.
 
-To do so, simply set the DOMAIN and UPSTREAM env variables accordingly :
+To do so, separate multiple corresponding values in the DOMAIN and UPSTREAM variables separated by a `;`:
+
 ```bash
 -e DOMAIN="domain1.com;sub.domain1.com;another.domain.net"
 -e UPSTREAM="backend:8080;172.17.0.5:60;container:5000"
-``` 
-The values are separated by `;`.
+```
 
 ## Caching the Certificates and/or DH Parameters
 
 Since `--link`s don't survive the re-creation of the target container, you'll need to coordinate re-creating
-the proxy container. In this case, you can cache the certificates and Diffie-Helmlan parameters with the following procedure:
+the proxy container. In this case, you can cache the certificates and Diffie-Hellman parameters with the following procedure:
 
 Do this once:
 
@@ -66,7 +66,7 @@ docker volume create --name letsencrypt-backups
 docker volume create --name dhparam-cache
 ```
 
-and then start the container with volume attachments:
+Then start the container, attaching the volumes you just created:
 
 ```bash
 docker run --detach \
@@ -77,25 +77,22 @@ docker run --detach \
   --env UPSTREAM=backend:8080 \
   --publish 80:80 \
   --publish 443:443 \
-  -v letsencrypt:/etc/letsencrypt \
-  -v letsencrypt-backups:/var/lib/letsencrypt \
-  -v dhparam-cache:/cache \
+  --volume letsencrypt:/etc/letsencrypt \
+  --volume letsencrypt-backups:/var/lib/letsencrypt \
+  --volume dhparam-cache:/cache \
   smashwilson/lets-nginx
 ```
 
 ## Adjusting Nginx configuration
 
-The entry point of this image processes the  `nginx.conf` file in `/templates` and places the result in `/etc/nginx` with the same file name.
-Also, one ore several files are created in `/etc/nginx/vhosts` with the the appropriate domain name, e.g `/etc/nginx/vhosts/domain1.com.conf`.
+The entry point of this image processes the `nginx.conf` file in `/templates` and places the result in `/etc/nginx/nginx.conf`. Additionally, the file `/templates/vhost.sample.conf` will be processed once for each `;`-delimited pair of values in `$DOMAIN` and `$UPSTREAM`. The result of each will be placed at `/etc/nginx/vhosts/${DOMAINVALUE}.conf`.
 
-The following variable substitutions are made while processing those files:
+The following variable substitutions are made while processing all of these files:
 
 * `${DOMAIN}`
 * `${UPSTREAM}`
 
-For example, to adjust `nginx.conf`, create that file in your new image directory
-with the [baseline content](templates/nginx.conf) and desired modifications.
-Within your `Dockerfile` *ADD* this file  and it will get used by the image entry point.
+For example, to adjust `nginx.conf`, create that file in your new image directory with the [baseline content](templates/nginx.conf) and desired modifications. Within your `Dockerfile` *ADD* this file and it will be used to create the nginx configuration instead.
 
 ```docker
 FROM smashwilson/lets-nginx
