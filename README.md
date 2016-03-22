@@ -44,7 +44,7 @@ Launch your backend container and note its name, then launch `smashwilson/lets-n
 
 ### Using more than one backend service
 
-You can set up multiple proxy destinations, matching the host name. This is usefull if you have more than one container you want to access in https
+You can set up multiple proxy destinations, matching the host name. This is usefull if you have more than one container you want to access with https
 
 To do so, simply set the DOMAIN and UPSTREAM env variables accordingly :
 ```bash
@@ -52,7 +52,6 @@ To do so, simply set the DOMAIN and UPSTREAM env variables accordingly :
 -e UPSTREAM="backend:8080;172.17.0.5:60;container:5000"
 ``` 
 The values are separated by `;`.
-A
 
 ## Caching the Certificates and/or DH Parameters
 
