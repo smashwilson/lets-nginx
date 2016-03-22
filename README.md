@@ -85,7 +85,9 @@ docker run --detach \
 
 ## Adjusting Nginx configuration
 
-The entry point of this image copy the `nginx.conf`file in `/templates` to `/etc/nginx/nginx.conf` and one ore several file in `/etc/nginx/vhosts` with the the appropriate domain name, e.g `/etc/nginx/vhosts/domain1.com.conf`.
+The entry point of this image processes the  `nginx.conf` file in `/templates` and places the result in `/etc/nginx` with the same file name.
+Also, one ore several files are created in `/etc/nginx/vhosts` with the the appropriate domain name, e.g `/etc/nginx/vhosts/domain1.com.conf`.
+
 The following variable substitutions are made while processing those files:
 
 * `${DOMAIN}`
