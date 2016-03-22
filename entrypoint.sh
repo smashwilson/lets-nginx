@@ -60,8 +60,13 @@ chown nginx:nginx /var/tmp/nginx
 #create vhost directory
 mkdir -p /etc/nginx/vhosts/
 
-# Copy nginx main conf file.
-cp templates/nginx.conf /etc/nginx/nginx.conf
+# Process the nginx.conf with ra values of $DOMAIN and $UPSTREAM to ensure backward-compatibility
+  dest="/etc/nginx/vhosts/nginx.conf"
+  echo "Rendering template of nginx.conf"
+  sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
+      -e "s/\${UPSTREAM}/${DOMAIN}/" \
+      /templates/nginx.conf > "$dest"
+
 
 # Process templates
 upstreamId=0
@@ -76,7 +81,7 @@ do
   upstreamId=$((upstreamId+1))
 
   #prepare the letsencrypt command arguments
-  letscmd="$letscmd --domain $t"
+  letscmd="$letscmd --domain $t "
 done
 
 # Initial certificate request, but skip if cached
