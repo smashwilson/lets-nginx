@@ -60,8 +60,8 @@ chown nginx:nginx /var/tmp/nginx
 #create vhost directory
 mkdir -p /etc/nginx/vhosts/
 
-# Process the nginx.conf with ra values of $DOMAIN and $UPSTREAM to ensure backward-compatibility
-  dest="/etc/nginx/vhosts/nginx.conf"
+# Process the nginx.conf with raw values of $DOMAIN and $UPSTREAM to ensure backward-compatibility
+  dest="/etc/nginx/nginx.conf"
   echo "Rendering template of nginx.conf"
   sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
       -e "s/\${UPSTREAM}/${DOMAIN}/" \
