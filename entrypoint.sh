@@ -65,6 +65,7 @@ cp templates/nginx.conf /etc/nginx/nginx.conf
 
 # Process templates
 upstreamId=0
+letscmd=""
 for t in "${DOMAINSARRAY[@]}"
 do
   dest="/etc/nginx/vhosts/$(basename "${t}").conf"
@@ -73,12 +74,9 @@ do
       -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
       /templates/vhost.sample.conf > "$dest"
   upstreamId=$((upstreamId+1))
-done
 
-letscmd=""
-for d in "${DOMAINSARRAY[@]}"
-do
-  letscmd="$letscmd --domain $d"
+  #prepare the letsencrypt command arguments
+  letscmd="$letscmd --domain $t"
 done
 
 # Initial certificate request, but skip if cached
