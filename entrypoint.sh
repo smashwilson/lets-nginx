@@ -55,8 +55,7 @@ done
 if [ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]; then
   letsencrypt certonly \
     --domain ${DOMAIN} \
-    --authenticator standalone \
-    ${SERVER} \
+    --standalone \
     --email "${EMAIL}" --agree-tos
 fi
 
@@ -67,10 +66,10 @@ cat <<EOF >/etc/periodic/monthly/reissue
 set -euo pipefail
 
 # Certificate reissue
-letsencrypt certonly --renew-by-default \
+letsencrypt certonly --force-renewal \
+  --webroot \
+  -w /etc/letsencrypt/webrootauth/ \
   --domain "${DOMAIN}" \
-  --authenticator webroot \
-  --webroot-path /etc/letsencrypt/webrootauth/ ${SERVER} \
   --email "${EMAIL}" --agree-tos
 
 # Reload nginx configuration to pick up the reissued certificates

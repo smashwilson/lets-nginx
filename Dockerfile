@@ -1,4 +1,4 @@
-FROM alpine:3.2
+FROM alpine:latest
 MAINTAINER Ash Wilson <smashwilson@gmail.com>
 
 RUN apk add --update nginx \
