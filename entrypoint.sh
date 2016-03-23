@@ -89,6 +89,7 @@ done
     letsencrypt certonly \
       ${letscmd} \
       --standalone \
+      "${SERVER}" \
       --email "${EMAIL}" --agree-tos
   fi
 
@@ -103,6 +104,7 @@ done
     --webroot \
     -w /etc/letsencrypt/webrootauth/ \
     ${letscmd} \
+    "${SERVER}" \
     --email "${EMAIL}" --agree-tos
 
   # Reload nginx configuration to pick up the reissued certificates
