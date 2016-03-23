@@ -80,20 +80,21 @@ do
       /templates/vhost.sample.conf > "$dest"
   upstreamId=$((upstreamId+1))
 
-  #prepare the letsencrypt command arguments
-  letscmd="$letscmd --domain $t "
+  # prepare the letsencrypt command arguments, but skip if cached
+  if [ ! -f /etc/letsencrypt/live/"${t}"/fullchain.pem ]; then
+    letscmd="$letscmd --domain $t "
+  fi
 done
 
-# Initial certificate request, but skip if cached
-  if [ ! -f /etc/letsencrypt/live/"${d}"/fullchain.pem ]; then
-    letsencrypt certonly \
-      ${letscmd} \
-      --standalone \
-      --email "${EMAIL}" --agree-tos
-  fi
+if ! [ -z "$letscmd" ]; then
+  letsencrypt certonly \
+    ${letscmd} \
+    --standalone \
+    --email "${EMAIL}" --agree-tos
+fi
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
-  cat <<EOF >/etc/periodic/monthly/reissue-"${d}"
+cat <<EOF >/etc/periodic/monthly/reissue
   #!/bin/sh
 
   set -euo pipefail
