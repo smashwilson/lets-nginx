@@ -82,6 +82,8 @@ do
 
   #prepare the letsencrypt command arguments
   letscmd="$letscmd --domain $t "
+
+  #test if 
 done
 
 # Initial certificate request, but skip if cached
@@ -90,7 +92,8 @@ done
       ${letscmd} \
       --standalone \
       "${SERVER}" \
-      --email "${EMAIL}" --agree-tos
+      --email "${EMAIL}" --agree-tos \
+      --expand
   fi
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
@@ -105,7 +108,8 @@ done
     -w /etc/letsencrypt/webrootauth/ \
     ${letscmd} \
     "${SERVER}" \
-    --email "${EMAIL}" --agree-tos
+    --email "${EMAIL}" --agree-tos \
+    --expand
 
   # Reload nginx configuration to pick up the reissued certificates
   /usr/sbin/nginx -s reload
