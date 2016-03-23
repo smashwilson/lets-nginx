@@ -85,7 +85,7 @@ do
 done
 
 # Initial certificate request, but skip if cached
-  if [ ! -f /etc/letsencrypt/live/"${d}"/fullchain.pem ]; then
+  if [ ! -f /etc/letsencrypt/live/fullchain.pem ]; then
     letsencrypt certonly \
       ${letscmd} \
       --standalone \
@@ -93,7 +93,7 @@ done
   fi
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
-  cat <<EOF >/etc/periodic/monthly/reissue-"${d}"
+  cat <<EOF >/etc/periodic/monthly/reissue
   #!/bin/sh
 
   set -euo pipefail
