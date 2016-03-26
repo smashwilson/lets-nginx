@@ -73,28 +73,50 @@ upstreamId=0
 letscmd=""
 for t in "${DOMAINSARRAY[@]}"
 do
+
   dest="/etc/nginx/vhosts/$(basename "${t}").conf"
   echo "Rendering template of $t in $dest"
   sed -e "s/\${DOMAIN}/${t}/g" \
       -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
+      -e "s/\${PATH}/${DOMAINSARRAY[0]}/" \
       /templates/vhost.sample.conf > "$dest"
   upstreamId=$((upstreamId+1))
 
   #prepare the letsencrypt command arguments
-  letscmd="$letscmd --domain $t "
+  letscmd="$letscmd -d $t "
 
-  #test if 
 done
 
+
+# Check if the SAN list has changed
+if [ ! -f /etc/letsencrypt/san_list ]; then
+ cat <<EOF >/etc/letsencrypt/san_list
+ "${DOMAIN}"
+EOF
+  fresh=true
+else 
+  old_san=$(cat /etc/letsencrypt/san_list)
+  if [ "${DOMAIN}" != "${old_san}" ]; then
+    fresh=true
+  else 
+    fresh=false
+  fi
+fi
+
 # Initial certificate request, but skip if cached
-  if [ ! -f /etc/letsencrypt/live/fullchain.pem ]; then
+  if [ $fresh = true ]; then
+    rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
+
     letsencrypt certonly \
-      ${letscmd} \
       --standalone \
       "${SERVER}" \
       --email "${EMAIL}" --agree-tos \
-      --expand
+      --expand \
+      "${letscmd}"
   fi
+
+#update the stored SAN list
+"${DOMAIN}" > /etc/letsencrypt/san_list
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
   cat <<EOF >/etc/periodic/monthly/reissue
