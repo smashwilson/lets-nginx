@@ -105,18 +105,19 @@ fi
 
 # Initial certificate request, but skip if cached
   if [ $fresh = true ]; then
+    echo "The SAN list has changed, removing the old certificate and ask for a new one."
     rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
-
-    letsencrypt certonly \
-      --standalone \
-      "${SERVER}" \
-      --email "${EMAIL}" --agree-tos \
-      --expand \
-      "${letscmd}"
+   
+   echo "letsencrypt certonly "${letscmd}" \
+    --standalone \
+    "${SERVER}" \
+    --email "${EMAIL}" --agree-tos \
+    --expand " > /etc/nginx/lets
+    /bin/bash /etc/nginx/lets
   fi
 
 #update the stored SAN list
-"${DOMAIN}" > /etc/letsencrypt/san_list
+echo "${DOMAIN}" > /etc/letsencrypt/san_list
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
   cat <<EOF >/etc/periodic/monthly/reissue
