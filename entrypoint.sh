@@ -64,7 +64,7 @@ mkdir -p /etc/nginx/vhosts/
   dest="/etc/nginx/nginx.conf"
   echo "Rendering template of nginx.conf"
   sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
-      -e "s/\${UPSTREAM}/${DOMAIN}/" \
+      -e "s/\${UPSTREAM}/${UPSTREAM}/" \
       /templates/nginx.conf > "$dest"
 
 
