@@ -9,6 +9,8 @@ RUN apk add --update nginx bash \
   augeas-dev openssl-dev libffi-dev ca-certificates dialog \
   && rm -rf /var/cache/apk/*
 
+RUN chown -R nginx:nginx /var/lib/nginx/
+
 RUN pip install -U letsencrypt
 
 # forward request and error logs to docker log collector
