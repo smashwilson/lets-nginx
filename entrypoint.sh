@@ -81,12 +81,12 @@ do
     echo "Manual configuration found for $t"
     src="/configs/${t}.conf"
   fi
-    dest="/etc/nginx/vhosts/$(basename "${t}").conf"
-    echo "Rendering template of $t in $dest"
-    sed -e "s/\${DOMAIN}/${t}/g" \
-        -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
-        -e "s/\${PATH}/${DOMAINSARRAY[0]}/" \
-        "$src" > "$dest"
+
+  echo "Rendering template of $t in $dest"
+  sed -e "s/\${DOMAIN}/${t}/g" \
+      -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
+      -e "s/\${PATH}/${DOMAINSARRAY[0]}/" \
+      "$src" > "$dest"
 
   upstreamId=$((upstreamId+1))
 
