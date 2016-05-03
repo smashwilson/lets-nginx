@@ -76,8 +76,7 @@ do
   dest="/etc/nginx/vhosts/$(basename "${t}").conf"
   src="/templates/vhost.sample.conf"
 
-  if [ -r /configs/"${t}".conf ]
-  then
+  if [ -r /configs/"${t}".conf ]; then
     echo "Manual configuration found for $t"
     src="/configs/${t}.conf"
   fi
