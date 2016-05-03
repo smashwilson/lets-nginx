@@ -41,6 +41,7 @@ Launch your backend container and note its name, then launch `smashwilson/lets-n
             Let's Encrypt rate-limits the production server to issuing
             [five certificates per domain per seven days](https://community.letsencrypt.org/t/public-beta-rate-limits/4772/3),
             which (as I discovered the hard way) you can quickly exhaust by debugging unrelated problems!
+ * `-v {PATH_TO_CONFIGS}:/configs:ro` specify manual configurations for select domains.  Must be in the form {DOMAIN}.conf to be recognized.
 
 ### Using more than one backend service
 
