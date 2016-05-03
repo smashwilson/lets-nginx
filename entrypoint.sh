@@ -73,13 +73,20 @@ upstreamId=0
 letscmd=""
 for t in "${DOMAINSARRAY[@]}"
 do
-
   dest="/etc/nginx/vhosts/$(basename "${t}").conf"
+  src="/templates/vhost.sample.conf"
+
+  if [ -r /configs/"${t}".conf ]; then
+    echo "Manual configuration found for $t"
+    src="/configs/${t}.conf"
+  fi
+
   echo "Rendering template of $t in $dest"
   sed -e "s/\${DOMAIN}/${t}/g" \
       -e "s/\${UPSTREAM}/${UPSTREAMARRAY[upstreamId]}/" \
       -e "s/\${PATH}/${DOMAINSARRAY[0]}/" \
-      /templates/vhost.sample.conf > "$dest"
+      "$src" > "$dest"
+
   upstreamId=$((upstreamId+1))
 
   #prepare the letsencrypt command arguments
