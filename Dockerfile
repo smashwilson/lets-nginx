@@ -1,15 +1,13 @@
-FROM alpine:latest
+FROM nginx:alpine
 MAINTAINER Ash Wilson <smashwilson@gmail.com>
 
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
-RUN apk add --update nginx bash \
+RUN apk add --update bash \
   python python-dev py-pip \
   gcc musl-dev linux-headers \
   augeas-dev openssl-dev libffi-dev ca-certificates dialog \
   && rm -rf /var/cache/apk/*
-
-RUN chown -R nginx:nginx /var/lib/nginx/
 
 RUN pip install -U letsencrypt
 
