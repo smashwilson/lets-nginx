@@ -153,5 +153,4 @@ chmod +x /etc/periodic/monthly/reissue
 
 echo Ready
 # Launch nginx in the foreground
-#/bin/bash
 /usr/sbin/nginx -g "daemon off;"
