@@ -6,7 +6,7 @@ MAINTAINER Ash Wilson <smashwilson@gmail.com>
 RUN apk add --update bash \
   python python-dev py-pip \
   gcc musl-dev linux-headers \
-  augeas-dev openssl-dev libffi-dev ca-certificates dialog \
+  augeas-dev openssl openssl-dev libffi-dev ca-certificates dialog \
   && rm -rf /var/cache/apk/*
 
 RUN pip install -U letsencrypt
