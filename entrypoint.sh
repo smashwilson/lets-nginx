@@ -128,21 +128,21 @@ echo "${DOMAIN}" > /etc/letsencrypt/san_list
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
   cat <<EOF >/etc/periodic/monthly/reissue
-  #!/bin/sh
+#!/bin/sh
 
-  set -euo pipefail
+set -euo pipefail
 
-  # Certificate reissue
-  letsencrypt certonly --force-renewal \
-    --webroot \
-    -w /etc/letsencrypt/webrootauth/ \
-    ${letscmd} \
-    "${SERVER}" \
-    --email "${EMAIL}" --agree-tos \
-    --expand
+# Certificate reissue
+letsencrypt certonly --force-renewal \
+--webroot \
+-w /etc/letsencrypt/webrootauth/ \
+${letscmd} \
+${SERVER} \
+--email "${EMAIL}" --agree-tos \
+--expand
 
-  # Reload nginx configuration to pick up the reissued certificates
-  /usr/sbin/nginx -s reload
+# Reload nginx configuration to pick up the reissued certificates
+/usr/sbin/nginx -s reload
 EOF
 
 chmod +x /etc/periodic/monthly/reissue
