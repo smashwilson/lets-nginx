@@ -137,7 +137,7 @@ echo "${DOMAIN}" > /etc/letsencrypt/san_list
     --webroot \
     -w /etc/letsencrypt/webrootauth/ \
     ${letscmd} \
-    "${SERVER}" \
+    ${SERVER} \
     --email "${EMAIL}" --agree-tos \
     --expand
 
