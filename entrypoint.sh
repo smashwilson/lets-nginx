@@ -126,6 +126,9 @@ fi
 #update the stored SAN list
 echo "${DOMAIN}" > /etc/letsencrypt/san_list
 
+#Create the renewal directory (containing well-known challenges)
+mkdir -p /etc/letsencrypt/webrootauth/
+
 # Template a cronjob to reissue the certificate with the webroot authenticator
   cat <<EOF >/etc/periodic/monthly/reissue
 #!/bin/sh
