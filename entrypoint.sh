@@ -120,6 +120,8 @@ fi
     "${SERVER}" \
     --email "${EMAIL}" --agree-tos \
     --expand " > /etc/nginx/lets
+    
+    echo "Running initial certificate request... "
     /bin/bash /etc/nginx/lets
   fi
 
@@ -130,6 +132,7 @@ echo "${DOMAIN}" > /etc/letsencrypt/san_list
 mkdir -p /etc/letsencrypt/webrootauth/
 
 # Template a cronjob to reissue the certificate with the webroot authenticator
+echo "Creating a cron job to keep the certificate updated"
   cat <<EOF >/etc/periodic/monthly/reissue
 #!/bin/sh
 
