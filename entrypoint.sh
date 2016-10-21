@@ -116,7 +116,7 @@ fi
     rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
    
    echo "letsencrypt certonly "${letscmd}" \
-    --standalone \
+    --standalone --text \
     "${SERVER}" \
     --email "${EMAIL}" --agree-tos \
     --expand " > /etc/nginx/lets
@@ -140,7 +140,7 @@ set -euo pipefail
 
 # Certificate reissue
 letsencrypt certonly --force-renewal \
---webroot \
+--webroot --text \
 -w /etc/letsencrypt/webrootauth/ \
 ${letscmd} \
 ${SERVER} \
