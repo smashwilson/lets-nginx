@@ -15,9 +15,9 @@ RUN ln -sf /dev/stderr /var/log/nginx/error.log
 # used for webroot reauth
 RUN mkdir -p /etc/letsencrypt/webrootauth
 
-ADD entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /opt/entrypoint.sh
 ADD templates /templates
 
 EXPOSE 80 443
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/opt/entrypoint.sh"]
