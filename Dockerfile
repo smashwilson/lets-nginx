@@ -4,12 +4,9 @@ MAINTAINER Ash Wilson <smashwilson@gmail.com>
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
 RUN apk add --update bash \
-  python python-dev py-pip \
-  gcc musl-dev linux-headers \
-  augeas-dev openssl openssl-dev libffi-dev ca-certificates dialog \
+  certbot \
+  openssl openssl-dev ca-certificates \
   && rm -rf /var/cache/apk/*
-
-RUN pip install -U letsencrypt
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log
