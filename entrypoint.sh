@@ -91,9 +91,7 @@ do
 
   #prepare the letsencrypt command arguments
   letscmd="$letscmd -d $t "
-
 done
-
 
 # Check if the SAN list has changed
 if [ ! -f /etc/letsencrypt/san_list ]; then
@@ -111,19 +109,19 @@ else
 fi
 
 # Initial certificate request, but skip if cached
-  if [ $fresh = true ]; then
-    echo "The SAN list has changed, removing the old certificate and ask for a new one."
-    rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
-   
-   echo "certbot certonly "${letscmd}" \
-    --standalone --text \
-    "${SERVER}" \
-    --email "${EMAIL}" --agree-tos \
-    --expand " > /etc/nginx/lets
-    
-    echo "Running initial certificate request... "
-    /bin/bash /etc/nginx/lets
-  fi
+if [ $fresh = true ]; then
+  echo "The SAN list has changed, removing the old certificate and ask for a new one."
+  rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
+ 
+ echo "certbot certonly "${letscmd}" \
+  --standalone --text \
+  "${SERVER}" \
+  --email "${EMAIL}" --agree-tos \
+  --expand " > /etc/nginx/lets
+  
+  echo "Running initial certificate request... "
+  /bin/bash /etc/nginx/lets
+fi
 
 #update the stored SAN list
 echo "${DOMAIN}" > /etc/letsencrypt/san_list
@@ -131,27 +129,15 @@ echo "${DOMAIN}" > /etc/letsencrypt/san_list
 #Create the renewal directory (containing well-known challenges)
 mkdir -p /etc/letsencrypt/webrootauth/
 
-# Template a cronjob to reissue the certificate with the webroot authenticator
+# Template a cronjob to renew certificate with the webroot authenticator
 echo "Creating a cron job to keep the certificate updated"
-  cat <<EOF >/etc/periodic/monthly/reissue
+  cat <<EOF >/etc/periodic/monthly/renew
 #!/bin/sh
-
-set -euo pipefail
-
-# Certificate reissue
-certbot certonly --force-renewal \
---webroot --text \
--w /etc/letsencrypt/webrootauth/ \
-${letscmd} \
-${SERVER} \
---email "${EMAIL}" --agree-tos \
---expand
-
-# Reload nginx configuration to pick up the reissued certificates
-/usr/sbin/nginx -s reload
+# First renew certificate, then reload nginx config
+certbot renew --webroot --webroot-path /etc/letsencrypt/webrootauth/ --post-hook "/usr/sbin/nginx -s reload"
 EOF
 
-chmod +x /etc/periodic/monthly/reissue
+chmod +x /etc/periodic/monthly/renew
 
 # Kick off cron to reissue certificates as required
 # Background the process and log to stderr
