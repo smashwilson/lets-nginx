@@ -33,9 +33,12 @@ if [ "${#DOMAINSARRAY[@]}" != "${#UPSTREAMARRAY[@]}" ]; then
 fi
 
 # Default other parameters
+if [ "$STAGING" = "1" ] ; then
+    SERVER="--server https://acme-staging.api.letsencrypt.org/directory"
+else
+    SERVER=""
+fi
 
-SERVER=""
-[ -n "${STAGING:-}" ] && SERVER="--server https://acme-staging.api.letsencrypt.org/directory"
 
 # Generate strong DH parameters for nginx, if they don't already exist.
 if [ ! -f /etc/ssl/dhparams.pem ]; then
