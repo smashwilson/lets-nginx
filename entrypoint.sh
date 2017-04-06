@@ -33,6 +33,7 @@ if [ "${#DOMAINSARRAY[@]}" != "${#UPSTREAMARRAY[@]}" ]; then
 fi
 
 # Default other parameters
+STAGING=${STAGING:-0}
 if [ "$STAGING" = "1" ] ; then
     SERVER="--server https://acme-staging.api.letsencrypt.org/directory"
 else
