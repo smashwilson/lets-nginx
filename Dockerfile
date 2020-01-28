@@ -4,7 +4,8 @@ MAINTAINER Ash Wilson <smashwilson@gmail.com>
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
 RUN apk add --update bash \
-  certbot \
+  curl \
+  socat \
   openssl openssl-dev ca-certificates \
   && rm -rf /var/cache/apk/*
 

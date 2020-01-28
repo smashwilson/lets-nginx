@@ -8,7 +8,6 @@ MISSING=""
 
 [ -z "${DOMAIN}" ] && MISSING="${MISSING} DOMAIN"
 [ -z "${UPSTREAM}" ] && MISSING="${MISSING} UPSTREAM"
-[ -z "${EMAIL}" ] && MISSING="${MISSING} EMAIL"
 
 
 if [ "${MISSING}" != "" ]; then
@@ -30,14 +29,6 @@ printf "%s\n" "${UPSTREAMARRAY[@]}"
 #The two arrays should have the same lenght
 if [ "${#DOMAINSARRAY[@]}" != "${#UPSTREAMARRAY[@]}" ]; then
   echo "The number of domains must match the number of upstream services"
-fi
-
-# Default other parameters
-STAGING=${STAGING:-0}
-if [ "$STAGING" = "1" ] ; then
-    SERVER="--server https://acme-staging-v02.api.letsencrypt.org/directory"
-else
-    SERVER=""
 fi
 
 
@@ -92,6 +83,7 @@ do
       "$src" > "$dest"
 
   upstreamId=$((upstreamId+1))
+  certPath=/etc/letsencrypt/live/${DOMAINSARRAY[0]}
 
   #prepare the letsencrypt command arguments
   letscmd="$letscmd -d $t "
@@ -114,38 +106,32 @@ fi
 
 # Initial certificate request, but skip if cached
 if [ $fresh = true ]; then
-  echo "The SAN list has changed, removing the old certificate and ask for a new one."
+  echo "The SAN list has changed, removing the old certificates"
   rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
+  
+  echo "downloading acme.sh"
+  curl -sS https://get.acme.sh -o acme.sh
+  /bin/bash acme.sh --upgrade --auto-upgrade
 
- echo "certbot certonly "${letscmd}" \
-  --standalone --preferred-challenges http --text \
-  "${SERVER}" \
-  --email "${EMAIL}" --agree-tos \
-  --expand " > /etc/nginx/lets
+  echo "Querying the certificates"
+  echo "/root/.acme.sh/acme.sh --issue --standalone \
+   "${letscmd}" " > /etc/nginx/lets
 
-  echo "Running initial certificate request... "
+  /bin/cat /etc/nginx/lets
   /bin/bash /etc/nginx/lets
+  
+  echo "Installing the certificates"
+  
+  mkdir -p  /etc/letsencrypt/live
+    /root/.acme.sh/acme.sh --install-cert "${letscmd}" \
+    --key-file       /etc/letsencrypt/live/key.pem  \
+    --fullchain-file /etc/letsencrypt/live/cert.pem \
+    --reloadcmd     "/usr/sbin/nginx -s reload" 
+  
 fi
 
 #update the stored SAN list
 echo "${DOMAIN}" > /etc/letsencrypt/san_list
-
-#Create the renewal directory (containing well-known challenges)
-mkdir -p /etc/letsencrypt/webrootauth/
-
-# Template a cronjob to renew certificate with the webroot authenticator
-echo "Creating a cron job to keep the certificate updated"
-  cat <<EOF >/etc/periodic/weekly/renew
-#!/bin/sh
-# First renew certificate, then reload nginx config
-certbot renew --webroot --webroot-path /etc/letsencrypt/webrootauth/ --post-hook "/usr/sbin/nginx -s reload"
-EOF
-
-chmod +x /etc/periodic/weekly/renew
-
-# Kick off cron to reissue certificates as required
-# Background the process and log to stderr
-/usr/sbin/crond -f -d 8 &
 
 echo Ready
 # Launch nginx in the foreground
