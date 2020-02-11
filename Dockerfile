@@ -17,6 +17,7 @@ RUN ln -sf /dev/stderr /var/log/nginx/error.log
 RUN mkdir -p /etc/letsencrypt/webrootauth
 
 COPY entrypoint.sh /opt/entrypoint.sh
+COPY launch_nginx.sh /opt/launch_nginx.sh
 ADD templates /templates
 
 # There is an expose in nginx:alpine image

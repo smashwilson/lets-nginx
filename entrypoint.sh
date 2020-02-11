@@ -86,7 +86,7 @@ do
   certPath=/etc/letsencrypt/live/${DOMAINSARRAY[0]}
 
   #prepare the letsencrypt command arguments
-  letscmd="$letscmd -d $t "
+  letscmd="$letscmd-d $t "
 done
 
 # Check if the SAN list has changed
@@ -115,24 +115,24 @@ if [ $fresh = true ]; then
 
   echo "Querying the certificates"
   echo "/root/.acme.sh/acme.sh --issue --standalone \
-   "${letscmd}" " > /etc/nginx/lets
+   "${letscmd}"" > /etc/nginx/lets
 
   /bin/cat /etc/nginx/lets
   /bin/bash /etc/nginx/lets
   
-  echo "Installing the certificates"
+  #update the stored SAN list
+  echo "${DOMAIN}" > /etc/letsencrypt/san_list
   
-  mkdir -p  /etc/letsencrypt/live
-    /root/.acme.sh/acme.sh --install-cert "${letscmd}" \
-    --key-file       /etc/letsencrypt/live/key.pem  \
-    --fullchain-file /etc/letsencrypt/live/cert.pem \
-    --reloadcmd     "/usr/sbin/nginx -s reload" 
+  echo "Installing the certificates"
+  mkdir -p ${certPath}
+  echo "/root/.acme.sh/acme.sh --install-cert "${letscmd}" \
+    --key-file       ${certPath}/privkey.pem  \
+    --fullchain-file ${certPath}/fullchain.pem \
+    --reloadcmd     \"/opt/launch_nginx.sh\"" > /tmp/install
+  /bin/cat /tmp/install
+  /bin/bash /tmp/install
   
 fi
 
-#update the stored SAN list
-echo "${DOMAIN}" > /etc/letsencrypt/san_list
-
-echo Ready
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"
