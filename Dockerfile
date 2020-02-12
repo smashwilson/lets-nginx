@@ -1,12 +1,11 @@
-FROM nginx:alpine
+FROM nginx
 MAINTAINER Ash Wilson <smashwilson@gmail.com>
 
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
-RUN apk add --update bash \
+RUN apt-get update && apt-get install -y \
   certbot \
-  openssl openssl-dev ca-certificates \
-  && rm -rf /var/cache/apk/*
+  && rm -rf /var/lib/apt/lists/*
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log
