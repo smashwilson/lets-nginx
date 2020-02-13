@@ -1,5 +1,5 @@
 FROM nginx
-LABEL Ash Wilson <smashwilson@gmail.com>
+LABEL maintainer=Ash Wilson <smashwilson@gmail.com>
 
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
