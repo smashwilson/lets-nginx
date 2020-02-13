@@ -1,10 +1,11 @@
 FROM nginx
-MAINTAINER Ash Wilson <smashwilson@gmail.com>
+LABEL maintainer=Ash Wilson <smashwilson@gmail.com>
 
 #We need to install bash to easily handle arrays
 # in the entrypoint.sh script
 RUN apt-get update && apt-get install -y \
   certbot \
+  cron \
   && rm -rf /var/lib/apt/lists/*
 
 # forward request and error logs to docker log collector

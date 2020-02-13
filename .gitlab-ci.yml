@@ -1,0 +1,48 @@
+image: docker:latest
+services:
+- docker:dind
+
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+
+stages:
+  - build
+  - release
+
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+
+build-sha:
+  stage: build
+  script:
+    - docker build --pull -t $IMAGE .
+    - docker push $IMAGE
+
+
+.release_script: &release_script
+  script:
+    - docker pull $IMAGE
+    - docker tag $IMAGE $RELEASE_IMAGE
+    - docker push $RELEASE_IMAGE
+
+
+release-latest:
+  stage: release
+  only:
+    - master
+  variables:
+    RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+  <<: *release_script
+
+
+release-tag:
+  stage: release
+  only:
+    - tags
+  variables:
+    RELEASE_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+  <<: *release_script
