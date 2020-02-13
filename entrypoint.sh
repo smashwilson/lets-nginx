@@ -15,7 +15,7 @@ if [ "${MISSING}" != "" ]; then
   echo "Missing required environment variables:" >&2
   echo " ${MISSING}" >&2
   exit 1
-  fi
+fi
 
 #Processing DOMAIN into an array
 DOMAINSARRAY=($(echo "${DOMAIN}" | awk -F ";" '{for(i=1;i<=NF;i++) print $i;}'))
@@ -65,11 +65,11 @@ chown nginx:nginx /var/tmp/nginx
 mkdir -p /etc/nginx/vhosts/
 
 # Process the nginx.conf with raw values of $DOMAIN and $UPSTREAM to ensure backward-compatibility
-  dest="/etc/nginx/nginx.conf"
-  echo "Rendering template of nginx.conf"
-  sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
-      -e "s/\${UPSTREAM}/${UPSTREAM}/" \
-      /templates/nginx.conf > "$dest"
+dest="/etc/nginx/nginx.conf"
+echo "Rendering template of nginx.conf"
+sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
+    -e "s/\${UPSTREAM}/${UPSTREAM}/" \
+    /templates/nginx.conf > "$dest"
 
 
 # Process templates
@@ -117,11 +117,11 @@ if [ $fresh = true ]; then
   echo "The SAN list has changed, removing the old certificate and ask for a new one."
   rm -rf /etc/letsencrypt/{live,archive,keys,renewal}
 
- echo "certbot certonly "${letscmd}" \
-  --standalone --preferred-challenges http --text \
-  "${SERVER}" \
-  --email "${EMAIL}" --agree-tos \
-  --expand " > /etc/nginx/lets
+  echo "certbot certonly "${letscmd}" \
+    --standalone --preferred-challenges http --text \
+    "${SERVER}" \
+    --email "${EMAIL}" --agree-tos \
+    --expand " > /etc/nginx/lets
 
   echo "Running initial certificate request... "
   /bin/bash /etc/nginx/lets
