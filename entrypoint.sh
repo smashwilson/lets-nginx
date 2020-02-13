@@ -143,10 +143,6 @@ EOF
 
 chmod +x ${CRONFILE}
 
-# Kick off cron to reissue certificates as required
-# Background the process and log to stderr
-/usr/sbin/crond -f -d 8 &
-
 echo Ready
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"

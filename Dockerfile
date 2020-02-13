@@ -5,6 +5,7 @@ LABEL Ash Wilson <smashwilson@gmail.com>
 # in the entrypoint.sh script
 RUN apt-get update && apt-get install -y \
   certbot \
+  cron \
   && rm -rf /var/lib/apt/lists/*
 
 # forward request and error logs to docker log collector
