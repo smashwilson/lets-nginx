@@ -143,7 +143,7 @@ EOF
 chmod +x ${RENEW}
 
 # Install crontab
-echo "0 0 * * * /renew" | crontab
+echo "0 0 * * * ${RENEW}" | crontab
 echo "Created crontab:"
 crontab -l
 
