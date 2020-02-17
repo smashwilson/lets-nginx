@@ -144,7 +144,7 @@ chmod +x ${RENEW}
 
 # Install crontab
 echo "0 0 * * * ${RENEW}" | crontab
-echo "Created crontab:"
+echo "Created crontab to renew certificates:"
 crontab -l
 
 # Make sure cron service is running
