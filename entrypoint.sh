@@ -134,14 +134,21 @@ echo "${DOMAIN}" > /etc/letsencrypt/san_list
 mkdir -p /etc/letsencrypt/webrootauth/
 
 # Template a cronjob to renew certificate with the webroot authenticator
-CRONFILE=/etc/cron.daily/renew
-cat <<EOF >${CRONFILE}
+RENEW=/renew
+cat <<EOF >${RENEW}
 #!/bin/sh
 # First renew certificate, then reload nginx config
 certbot renew --webroot --webroot-path /etc/letsencrypt/webrootauth/ --post-hook "/usr/sbin/nginx -s reload"
 EOF
+chmod +x ${RENEW}
 
-chmod +x ${CRONFILE}
+# Install crontab
+echo "0 0 * * * ${RENEW}" | crontab
+echo "Created crontab to renew certificates:"
+crontab -l
+
+# Make sure cron service is running
+/etc/init.d/cron start
 
 echo Ready
 # Launch nginx in the foreground
