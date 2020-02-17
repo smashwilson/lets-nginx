@@ -146,6 +146,9 @@ chmod +x ${RENEW}
 echo "0 0 * * * /renew" | crontab
 crontab -l
 
+# Make sure cron service is running
+/etc/init.d/cron start
+
 echo Ready
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"
