@@ -36,7 +36,7 @@ fi
 STAGING=${STAGING:-0}
 if [ "$STAGING" = "1" ] ; then
   echo "Using STAGING server"
-  SERVER="--server https://acme-staging-v02.api.letsencrypt.org/directory"
+  SERVER="--staging"
 else
   SERVER=""
 fi
