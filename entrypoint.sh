@@ -35,9 +35,10 @@ fi
 # Default other parameters
 STAGING=${STAGING:-0}
 if [ "$STAGING" = "1" ] ; then
-    SERVER="--server https://acme-staging-v02.api.letsencrypt.org/directory"
+  echo "Using STAGING server"
+  SERVER="--server https://acme-staging-v02.api.letsencrypt.org/directory"
 else
-    SERVER=""
+  SERVER=""
 fi
 
 
